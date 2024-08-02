@@ -5,7 +5,7 @@ import java.sql.*;
 
 public class ConnectionUtil {
 
-    public Connection connect_to_db(String dbname, String user, String pass) {
+    public static Connection connect_to_db(String dbname, String user, String pass) {
 
         Connection conn = null;
         try {
@@ -22,7 +22,5 @@ public class ConnectionUtil {
         }
         return conn;
     }
-
-
 }
 
