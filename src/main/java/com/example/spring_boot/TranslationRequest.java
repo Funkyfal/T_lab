@@ -1,13 +1,19 @@
 package com.example.spring_boot;
 
+
 import java.security.Timestamp;
 
 public class TranslationRequest {
 
+
     private Long id;
+
     private String ipAddress;
+
     private String inputText;
+
     private String translatedText;
+
     private Timestamp timestamp;
 
     public Long getId() {
