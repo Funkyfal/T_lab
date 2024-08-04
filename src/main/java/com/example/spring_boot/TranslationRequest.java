@@ -55,4 +55,12 @@ public class TranslationRequest {
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "TranslationRequest[id=%d, ipAddress='%s', inputText='%s'," +
+                        " inputText='%s', translatedText='%s', timeStamp='%s']",
+                id, ipAddress, inputText, translatedText, timestamp);
+    }
 }
