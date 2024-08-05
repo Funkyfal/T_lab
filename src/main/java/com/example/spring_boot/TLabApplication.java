@@ -1,6 +1,5 @@
 package com.example.spring_boot;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -44,13 +43,10 @@ public class TLabApplication {
 		return args -> {
 			System.out.println("Testing database connection...");
 
-			// Создаем тестовую таблицу
 			jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY, name VARCHAR(255))");
 
-			// Вставляем тестовые данные
 			jdbcTemplate.execute("INSERT INTO test_table (name) VALUES ('Test Name')");
 
-			// Выполняем запрос и выводим результат
 			jdbcTemplate.query("SELECT id, name FROM test_table",
 							(rs, rowNum) -> "ID: " + rs.getLong("id") + ", Name: " + rs.getString("name"))
 					.forEach(System.out::println);
