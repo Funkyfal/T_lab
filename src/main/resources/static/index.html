@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Translator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+    </style>
+    <script src="https://unpkg.com/htmx.org@1.5.0"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Text Translator</h1>
+    <form id="translateForm">
+        <div class="form-group">
+            <label for="sourceLang">Source Language:</label>
+            <select id="sourceLang" name="sourceLang"></select>
+        </div>
+        <div class="form-group">
+            <label for="targetLang">Target Language:</label>
+            <select id="targetLang" name="targetLang"></select>
+        </div>
+        <div class="form-group">
+            <label for="textInput">Text to Translate:</label>
+            <textarea id="textInput" name="text" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+            <button type="button" onclick="translateText()">Translate</button>
+        </div>
+    </form>
+    <div class="form-group">
+        <label for="translatedText">Translated Text:</label>
+        <textarea id="translatedText" rows="4" readonly></textarea>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/translate/languages')
+            .then(response => response.json())
+            .then(languages => {
+                const sourceLangSelect = document.getElementById('sourceLang');
+                const targetLangSelect = document.getElementById('targetLang');
+                languages.forEach(lang => {
+                    let option = document.createElement('option');
+                    option.value = lang;
+                    option.text = lang;
+                    sourceLangSelect.appendChild(option);
+                    targetLangSelect.appendChild(option.cloneNode(true));
+                });
+            });
+    });
+
+    function translateText() {
+        const form = document.getElementById('translateForm');
+        const formData = new FormData(form);
+        const json = {};
+        formData.forEach((value, key) => { json[key] = value });
+
+        fetch('/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(json),
+        })
+        .then(response => response.text())
+        .then(translatedText => {
+            document.getElementById('translatedText').value = translatedText;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
