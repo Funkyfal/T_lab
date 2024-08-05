@@ -10,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
 
-
 @SpringBootApplication
 public class TLabApplication {
 
@@ -43,16 +42,16 @@ public class TLabApplication {
 		return args -> {
 			System.out.println("Testing database connection...");
 
-			jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY, name VARCHAR(255))");
+			jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS translation_requests (id SERIAL PRIMARY KEY, ip_address VARCHAR(255), input_text TEXT, translated_text TEXT, timestamp TIMESTAMP)");
 
-			jdbcTemplate.execute("INSERT INTO test_table (name) VALUES ('Test Name')");
+			jdbcTemplate.execute("INSERT INTO translation_requests (ip_address, input_text, translated_text, timestamp) VALUES ('test', 'Hello world', 'Привет мир', CURRENT_TIMESTAMP)");
 
-			jdbcTemplate.query("SELECT id, name FROM test_table",
-							(rs, rowNum) -> "ID: " + rs.getLong("id") + ", Name: " + rs.getString("name"))
+			jdbcTemplate.query("SELECT id, ip_address, input_text, translated_text, timestamp FROM translation_requests",
+							(rs, rowNum) -> String.format("ID: %d, IP Address: %s, Input Text: %s, Translated Text: %s, Timestamp: %s",
+									rs.getLong("id"), rs.getString("ip_address"), rs.getString("input_text"), rs.getString("translated_text"), rs.getTimestamp("timestamp")))
 					.forEach(System.out::println);
 
 			System.out.println("Database connection tested successfully.");
 		};
 	}
-
 }
