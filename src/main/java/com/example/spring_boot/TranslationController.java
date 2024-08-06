@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/translate")
@@ -16,9 +17,9 @@ public class TranslationController {
     private TranslationService translationService;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> translate(@RequestBody TranslationRequest request) {
-        String translatedText = translationService.translateText(request.getText(), request.getSourceLang(), request.getTargetLang());
-        return ResponseEntity.ok(translatedText);
+    public CompletableFuture<ResponseEntity<String>> translate(@RequestBody TranslationRequest request) {
+        return translationService.translateText(request.getText(), request.getSourceLang(), request.getTargetLang())
+                .thenApply(ResponseEntity::ok);
     }
 
     @GetMapping("/languages")

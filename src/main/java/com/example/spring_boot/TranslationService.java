@@ -14,7 +14,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 public class TranslationService {
@@ -25,30 +30,47 @@ public class TranslationService {
     private String apiKey;
 
     private static final String DEEPL_TRANSLATE_URL = "https://api-free.deepl.com/v2/translate";
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     public TranslationService(RestTemplate restTemplate, JdbcTemplate jdbcTemplate) {
         this.restTemplate = restTemplate;
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public String translateText(String text, String sourceLang, String targetLang) {
+    public CompletableFuture<String> translateText(String text, String sourceLang, String targetLang) {
+        String[] words = text.split("\\s+");
+
+        List<CompletableFuture<String>> futures = Arrays.stream(words)
+                .map(word -> CompletableFuture.supplyAsync(() -> translateWord(word, sourceLang, targetLang), executorService))
+                .collect(Collectors.toList());
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.joining(" "))
+                )
+                .thenApply(translatedText -> {
+                    saveTranslationRequest(text, translatedText);
+                    return translatedText;
+                });
+    }
+
+    private String translateWord(String word, String sourceLang, String targetLang) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/x-www-form-urlencoded");
         String requestBody = "auth_key=" + apiKey +
-                "&text=" + UriUtils.encode(text, StandardCharsets.UTF_8) +
+                "&text=" + UriUtils.encode(word, StandardCharsets.UTF_8) +
                 "&source_lang=" + sourceLang +
                 "&target_lang=" + targetLang;
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
         ResponseEntity<TranslationResponse> response = restTemplate.exchange(DEEPL_TRANSLATE_URL, HttpMethod.POST, entity, TranslationResponse.class);
-        String translatedText = "Translation failed";
 
         if (response.getBody() != null && response.getBody().getTranslations() != null && !response.getBody().getTranslations().isEmpty()) {
-            translatedText = response.getBody().getTranslations().get(0).getText();
+            return response.getBody().getTranslations().get(0).getText();
+        } else {
+            return "Translation failed";
         }
-        saveTranslationRequest(text, translatedText);
-        return translatedText;
     }
-
 
     private void saveTranslationRequest(String inputText, String translatedText) {
         String ipAddress = "unknown";
