@@ -1,5 +1,6 @@
 package com.example.spring_boot;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,13 +23,25 @@ public class TLabApplication {
         return new RestTemplate();
     }
 
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+
+    @Value("${spring.datasource.driver-class-name}")
+    private String dbDriverClassName;
+
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://localhost:5432/TDB");
-        dataSource.setUsername("postgres");
-        dataSource.setPassword("DBPASSWORD");
+        dataSource.setDriverClassName(dbDriverClassName);
+        dataSource.setUrl(dbUrl);
+        dataSource.setUsername(dbUsername);
+        dataSource.setPassword(dbPassword);
         return dataSource;
     }
 
